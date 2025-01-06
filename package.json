@@ -1,0 +1,24 @@
+{
+  "name": "rdgpt-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --watch src --exec ts-node src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "nodemon": "^3.1.9",
+    "openai": "^4.77.0",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
