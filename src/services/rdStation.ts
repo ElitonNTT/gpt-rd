@@ -8,11 +8,30 @@ const rdApi = axios.create({
 const rdApi_key = process.env.RD_API_KEY;
 
 export async function getConversations() {
+  const paginatedData: { page: number; activities: any[] }[] = [];
+
   try {
-    const response = await rdApi.get(
-      `/activities?token=${rdApi_key}&page=1&limit=7&type=all&start_date=01%2F01%2F2025&end_date=03%2F01%2F2025`
-    );
-    return response.data.activities;
+    for (let i = 1; i <= 2; i++) {
+      console.log(
+        `********************************************** Página ${i} carregada. **************************************************************`
+      );
+      const response = await rdApi.get(
+        `/activities?token=${rdApi_key}&limit=10&page=${i}&type=all&start_date=02%2F01%2F2025&end_date=02%2F01%2F2025`
+      );
+
+      const activities = response.data.activities;
+
+      if (activities.length === 0) {
+        break;
+      }
+
+      paginatedData.push({
+        page: i,
+        activities,
+      });
+    }
+
+    return paginatedData;
   } catch (error: any) {
     console.error("Erro ao obter conversas:", error.message);
     return [];
@@ -37,15 +56,19 @@ export async function getDealDetails(dealId: any) {
 export async function getConversationDetails() {
   const conversations = await getConversations();
 
-  // Filtra apenas os deal_id únicos
-  const uniqueDealIds = [...new Set(conversations.map((c: any) => c.deal_id))];
+  // Combina todas as atividades de todas as páginas
+  const allActivities = conversations.flatMap(
+    (pageData) => pageData.activities
+  );
+
+  const uniqueDealIds = [...new Set(allActivities.map((c: any) => c.deal_id))];
 
   const consolidatedData = [];
 
   for (const dealId of uniqueDealIds) {
     const dealDetails = await getDealDetails(dealId);
     if (dealDetails) {
-      const relevantConversations = conversations.filter(
+      const relevantConversations = allActivities.filter(
         (c: any) => c.deal_id === dealId
       );
       consolidatedData.push({
@@ -56,5 +79,13 @@ export async function getConversationDetails() {
     }
   }
 
-  return consolidatedData;
+  // Retorne o formato correto que a IA espera
+  return consolidatedData.map((data) => ({
+    deal_id: data.deal_id,
+    conversations: data.conversations.map((conv: any) => ({
+      text: conv.text,
+      date: conv.date,
+    })),
+    details: data.details,
+  }));
 }

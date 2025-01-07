@@ -13,6 +13,7 @@ export async function createCsv(
       { id: "consultor", title: "CONSULTOR" },
     ],
   });
+
   await csvWriter.writeRecords(data);
   console.log(`CSV criado: ${filename}`);
 }
