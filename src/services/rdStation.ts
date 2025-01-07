@@ -5,30 +5,30 @@ const rdApi = axios.create({
   baseURL: process.env.RD_API_URL,
   headers: { Authorization: `Bearer ${process.env.RD_API_KEY}` },
 });
-const rdApi_key = process.env.RD_API_KEY;
 
 export async function getConversations() {
   const paginatedData: { page: number; activities: any[] }[] = [];
+  let page = 1;
 
   try {
-    for (let i = 1; i <= 2; i++) {
-      console.log(
-        `********************************************** Página ${i} carregada. **************************************************************`
-      );
+    while (true) {
+      console.log(`Carregando página ${page}...`);
       const response = await rdApi.get(
-        `/activities?token=${rdApi_key}&limit=10&page=${i}&type=all&start_date=02%2F01%2F2025&end_date=02%2F01%2F2025`
+        `/activities?token=${process.env.RD_API_KEY}&limit=10&page=${page}&type=all&start_date=02%2F01%2F2025&end_date=02%2F01%2F2025`
       );
 
       const activities = response.data.activities;
 
-      if (activities.length === 0) {
+      if (!activities || activities.length === 0) {
         break;
       }
 
       paginatedData.push({
-        page: i,
+        page,
         activities,
       });
+
+      page++;
     }
 
     return paginatedData;
@@ -41,7 +41,7 @@ export async function getConversations() {
 export async function getDealDetails(dealId: any) {
   try {
     const response = await rdApi.get(
-      `/activities?token=${rdApi_key}&deal_id=${dealId}&type=all`
+      `/activities?token=${process.env.RD_API_KEY}&deal_id=${dealId}&type=all`
     );
     return response.data;
   } catch (error: any) {
@@ -79,7 +79,6 @@ export async function getConversationDetails() {
     }
   }
 
-  // Retorne o formato correto que a IA espera
   return consolidatedData.map((data) => ({
     deal_id: data.deal_id,
     conversations: data.conversations.map((conv: any) => ({
@@ -89,3 +88,21 @@ export async function getConversationDetails() {
     details: data.details,
   }));
 }
+
+// // Envia o curso para ao RD
+// export async function sendCourseToIntegrator(
+//   pessoa: string,
+//   curso: string,
+//   consultor: string
+// ) {
+//   try {
+//     const response = await rdApi.post(`/send-course`, {
+//       pessoa,
+//       curso,
+//       consultor,
+//     });
+//     console.log(`Curso enviado para ${pessoa}: ${response.status}`);
+//   } catch (error: any) {
+//     console.error(`Erro ao enviar curso para ${pessoa}:`, error.message);
+//   }
+// }

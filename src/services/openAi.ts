@@ -20,13 +20,22 @@ export async function filterConversations(conversations: any) {
       ...
     ]
   `;
+
     const response = await openAiClient.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 200,
+      max_tokens: 1000,
     });
 
-    const result = JSON.parse(response.choices[0].message.content!);
+    const content = response.choices[0].message.content!;
+
+    // Extraia o JSON utilizando regex para evitar erros de parsing
+    const jsonMatch = content.match(/\[.*\]/s); // Regex para encontrar um array JSON
+    if (!jsonMatch) {
+      throw new Error("Nenhum JSON válido encontrado na resposta da IA.");
+    }
+
+    const result = JSON.parse(jsonMatch[0]); // Parse apenas o JSON encontrado
     return result;
   } catch (error: any) {
     console.error("Erro ao filtrar conversa:", error.message);
