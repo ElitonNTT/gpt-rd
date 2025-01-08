@@ -7,42 +7,51 @@ const rdApi = axios.create({
 });
 
 export async function getConversations() {
-  const paginatedData: { page: number; activities: any[] }[] = [];
-  let page = 1;
+  const deals: any[] = [];
 
   try {
-    while (true) {
-      console.log(`Carregando página ${page}...`);
-      const response = await rdApi.get(
-        `/activities?token=${process.env.RD_API_KEY}&limit=10&page=${page}&type=all&start_date=02%2F01%2F2025&end_date=02%2F01%2F2025`
-      );
+    const response = await rdApi.get(
+      `/deals?token=${process.env.RD_API_KEY}&limit=5`
+    );
 
-      const activities = response.data.activities;
+    const data = response.data.deals;
 
-      if (!activities || activities.length === 0) {
-        break;
-      }
-
-      paginatedData.push({
-        page,
-        activities,
-      });
-
-      page++;
+    if (!data || data.length === 0) {
+      throw new Error(`No activities found`);
     }
 
-    return paginatedData;
+    // Filtrar negócios com campos personalizados relevantes
+    const filteredDeals = data.filter((deal: any) => {
+      const customFields = deal.deal_custom_fields || [];
+      return customFields.some((field: any) => {
+        const label = field.custom_field?.label;
+        return (
+          label === "Curso de interesse ou contratado" ||
+          label === "Curso de interesse"
+        );
+      });
+    });
+
+    deals.push(...filteredDeals);
+
+    return deals;
   } catch (error: any) {
     console.error("Erro ao obter conversas:", error.message);
     return [];
   }
 }
 
-export async function getDealDetails(dealId: any) {
+export async function getDealDetails(dealId: string) {
   try {
     const response = await rdApi.get(
       `/activities?token=${process.env.RD_API_KEY}&deal_id=${dealId}&type=all`
     );
+
+    if (!response.data) {
+      console.warn(`Nenhum dado retornado para o negócio ${dealId}`);
+      return null;
+    }
+
     return response.data;
   } catch (error: any) {
     console.error(
@@ -53,40 +62,27 @@ export async function getDealDetails(dealId: any) {
   }
 }
 
-export async function getConversationDetails() {
-  const conversations = await getConversations();
-
-  // Combina todas as atividades de todas as páginas
-  const allActivities = conversations.flatMap(
-    (pageData) => pageData.activities
+export async function filterDealsByCustomFields(conversations: any) {
+  const validDeals = conversations.filter(
+    (deal: any) => deal && typeof deal.id === "string"
   );
 
-  const uniqueDealIds = [...new Set(allActivities.map((c: any) => c.deal_id))];
+  const uniqueDealIds = [...new Set(validDeals.map((deal: any) => deal.id))];
+  console.log(
+    `************** UNIQUE DEAL IDS *****************`,
+    uniqueDealIds
+  );
 
-  const consolidatedData = [];
+  const filteredDealIds: string[] = [];
 
   for (const dealId of uniqueDealIds) {
-    const dealDetails = await getDealDetails(dealId);
-    if (dealDetails) {
-      const relevantConversations = allActivities.filter(
-        (c: any) => c.deal_id === dealId
-      );
-      consolidatedData.push({
-        deal_id: dealId,
-        conversations: relevantConversations,
-        details: dealDetails,
-      });
-    }
+    const dealDetails = await getDealDetails(dealId as string);
+    if (!dealDetails) continue;
+
+    filteredDealIds.push(dealId as string);
   }
 
-  return consolidatedData.map((data) => ({
-    deal_id: data.deal_id,
-    conversations: data.conversations.map((conv: any) => ({
-      text: conv.text,
-      date: conv.date,
-    })),
-    details: data.details,
-  }));
+  return filteredDealIds;
 }
 
 // // Envia o curso para ao RD

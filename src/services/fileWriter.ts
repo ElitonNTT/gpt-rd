@@ -15,6 +15,8 @@ export async function createCsv(
       { id: "pessoa", title: "PESSOA" },
       { id: "curso", title: "CURSO" },
       { id: "consultor", title: "CONSULTOR" },
+      { id: "data_hora", title: "DATA/HORA" },
+      { id: "deal_id", title: "DEALID" },
     ],
   });
 
@@ -28,7 +30,6 @@ export async function createExcel(
 ) {
   const workbook = new ExcelJS.Workbook();
 
-  // Verificar se o arquivo já existe
   if (fs.existsSync(filename)) {
     await workbook.xlsx.readFile(filename);
   }
@@ -41,6 +42,8 @@ export async function createExcel(
     { header: "Pessoa", key: "pessoa" },
     { header: "Curso", key: "curso" },
     { header: "Consultor", key: "consultor" },
+    { header: "Data", key: "data_hora" },
+    { header: "Deal ID", key: "deal_id" },
   ];
 
   sheet.addRows(data);

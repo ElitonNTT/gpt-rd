@@ -1,31 +1,33 @@
-import { getConversations, getDealDetails } from "./services/rdStation";
+import {
+  getConversations,
+  filterDealsByCustomFields,
+  getDealDetails,
+} from "./services/rdStation";
 import { createCsv, createExcel } from "./services/fileWriter";
 import { filterConversations } from "./services/openAi";
 
 async function main() {
   console.log("Carregando IDs de conversas...");
   const conversations = await getConversations();
-  const allActivities = conversations.flatMap(
-    (pageData) => pageData.activities
-  );
-  const uniqueDealIds = [...new Set(allActivities.map((c: any) => c.deal_id))];
 
-  console.log("Iniciando processamento de cada deal...");
-  for (const dealId of uniqueDealIds) {
+  console.log("Filtrando negócios por campos customizados...");
+  const filteredDealIds = await filterDealsByCustomFields(conversations);
+
+  console.log("Iniciando processamento de cada deal filtrado...");
+  for (const dealId of filteredDealIds) {
     console.log(`Processando deal: ${dealId}`);
 
-    // Obter detalhes do negócio
     const dealDetails = await getDealDetails(dealId);
     if (!dealDetails) {
       console.warn(`Nenhum detalhe encontrado para deal: ${dealId}`);
       continue;
     }
 
-    // Filtrar conversas com IA
-    const relevantConversations = allActivities.filter(
-      (c: any) => c.deal_id === dealId
+    const relevantConversations = conversations.filter(
+      (c) => c.deal_id === dealId
     );
-    const formattedConversations = relevantConversations.map((conv: any) => ({
+
+    const formattedConversations = relevantConversations.map((conv) => ({
       text: conv.text,
       date: conv.date,
     }));
@@ -37,17 +39,10 @@ async function main() {
         details: dealDetails,
       },
     ]);
-
     console.log(`Filtragem concluída para deal: ${dealId}`, filtered);
 
-    // Escrever no arquivo
     await createCsv(filtered, "filtered_conversations.csv");
     await createExcel(filtered, "filtered_conversations.xlsx");
-
-    // Enviar curso ao integrador
-    // for (const data of filtered) {
-    //   await sendCourseToIntegrator(data.pessoa, data.curso, data.consultor);
-    // }
 
     console.log(`Finalizado processamento do deal: ${dealId}`);
   }
