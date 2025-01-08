@@ -7,7 +7,6 @@ import { createCsv, createExcel } from "./services/fileWriter";
 import { filterConversations } from "./services/openAi";
 
 async function main() {
-  console.log("Carregando IDs de conversas...");
   const conversations = await getConversations();
 
   console.log("Filtrando negócios por campos customizados...");
@@ -23,9 +22,9 @@ async function main() {
       continue;
     }
 
-    const relevantConversations = conversations.filter(
-      (c) => c.deal_id === dealId
-    );
+    const relevantConversations = conversations
+      .flatMap((page) => page.deals)
+      .filter((c) => c.id === dealId);
 
     const formattedConversations = relevantConversations.map((conv) => ({
       text: conv.text,
