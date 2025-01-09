@@ -9,7 +9,7 @@ import { filterConversations } from "./services/openAi";
 async function main() {
   const conversations = await getConversations();
 
-  console.log("Filtrando negócios por campos customizados...");
+  console.log("Filtrando negócios...");
   const filteredDealIds = await filterDealsByCustomFields(conversations);
 
   console.log("Iniciando processamento de cada deal filtrado...");
@@ -18,7 +18,9 @@ async function main() {
 
     const dealDetails = await getDealDetails(dealId);
     if (!dealDetails) {
-      console.warn(`Nenhum detalhe encontrado para deal: ${dealId}`);
+      console.warn(
+        `Nenhum detalhe(activities) encontrado para deal: ${dealId}`
+      );
       continue;
     }
 

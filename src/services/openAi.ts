@@ -7,40 +7,6 @@ const openAiClient = new OpenAI({
 
 export async function filterConversations(conversations: any) {
   try {
-    const prompt = `
-    Identifique os cursos de interesse da pessoa, o nome da pessoa e o nome do consultor nas conversas ("text") abaixo:
-    "${JSON.stringify(conversations)}"
-    Retorne um array JSON no seguinte formato:
-    [
-      {
-        "curso": "<nome do curso ou 'Nenhum curso encontrado'>",
-        "pessoa": "<nome da pessoa>",
-        "consultor": "<nome do consultor>"
-      },
-      ...
-    ]
-  `;
-
-    const prompt2 = `
-     Dado um histórico de conversa de WhatsApp entre um consultor e um lead, analise as mensagens para identificar:
-     Todos os cursos de graduação mencionados na conversa.
-     O curso final de interesse do lead (se houver).
-     O nome do lead (se mencionado).
-     O nome do consultor (se mencionado).
-     Atenção: "Faculdade Fama" é o nome da instituição e não deve ser identificado como um curso.
-     Forneça as informações de forma organizada e clara, listando cada item separadamente. Caso algum item não possa ser identificado, informe que não foi possível encontrá-lo.
-      "${JSON.stringify(conversations)}"
-     Retorne um array JSON no seguinte formato:
-      [
-        {
-          "curso": "<nome do curso de interesse ou 'Nenhum curso encontrado'>",
-          "pessoa": "<nome da pessoa(lead)>",
-          "consultor": "<nome do consultor>"
-        },
-        ...
-      ]
-
-  `;
     const prompt3 = `
     Dado um histórico de conversa de WhatsApp entre um consultor e um lead, analise as mensagens abaixo para identificar:
     Todos os cursos de graduação mencionados na conversa.

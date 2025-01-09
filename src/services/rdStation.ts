@@ -17,6 +17,8 @@ export async function getConversations() {
   ];
 
   try {
+    //este page deve ser atualizado conforme a quantidade de pages disponivel e o "limit", se não, retorna erro.
+    //#melhorar
     while (page <= 50) {
       console.log(`Carregando página ${page}`);
       const response = await rdApi.get(
@@ -76,13 +78,7 @@ export async function filterDealsByCustomFields(conversations: any) {
     (deal: any) => deal && typeof deal.id === "string"
   );
 
-  console.log("********* VALID DEALS *******", validDeals);
-
   const uniqueDealIds = [...new Set(validDeals.map((deal: any) => deal.id))];
-  console.log(
-    `************** UNIQUE DEAL IDS *****************`,
-    uniqueDealIds
-  );
 
   const filteredDealIds: string[] = [];
 
