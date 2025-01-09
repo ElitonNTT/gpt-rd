@@ -52,6 +52,8 @@ export async function getConversations() {
 
 export async function getDealDetails(dealId: string) {
   try {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     const response = await rdApi.get(
       `/activities?token=${process.env.RD_API_KEY}&deal_id=${dealId}&type=all`
     );
@@ -60,7 +62,6 @@ export async function getDealDetails(dealId: string) {
       console.warn(`Nenhum dado retornado para o negócio ${dealId}`);
       return null;
     }
-
     return response.data;
   } catch (error: any) {
     console.error(
